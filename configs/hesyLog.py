@@ -70,4 +70,6 @@ http://www.pythondoc.com/pythontutorial3/modules.html 这个是中文文档 挺�
     * from xx import *  可以导入所有除了以下划线( _ )开头的命名 --》 看来如果不想被导入 就写成 _ 开头的就好  或者使用__all__ 变量控制export的变量
         但实际上不是一很鼓励--》 代码比较难以阅读
 
+报错信息怎么放在log里面去
+
 """

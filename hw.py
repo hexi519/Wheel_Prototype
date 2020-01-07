@@ -77,31 +77,31 @@ train_data = np.array([ traffic_data[j,:,i] for i in range(66) for j in range(21
 
 # ======  load configs and changed paras  ========
 
-
 def train(model, dataset, para, writer, device ,checkpoint=None):
   check_flag = True
-  # TODO 
+  # TODO checkpoint 也得加argparser么
   if checkpoint !=None:
     logger.error("还没有实现这部分的逻辑...")
 
   train_dataset = TrafficData( 
-            dataset ,
+            dataset['train'] ,
             time_stamp = para("time_stamp"),
             test_index=(weekend,workday),
             train=True
             )
   # TODO 这里要改成True
-  data_iter = Data.DataLoader(train_dataset, para("batch_size"), shuffle=False,num_workers= para("num_workers") )
+  data_iter = Data.DataLoader( train_dataset , para("batch_size"), shuffle=False,num_workers= para("num_workers") )
 
   optimizer = torch.optim.Adam(model.parameters(), lr= para("lr"))
-
-  # loss = nn.MSELoss(reduction="none")  # ?? TODO 
   loss = nn.MSELoss()  # ?? TODO 
-  
   min_loss=99999999
-  
-  # for epoch in tqdm(range( para("num_epochs"))):
-  for epoch in range( para("num_epochs")) :
+  start_epoch =0
+  if checkpoint is not None:
+    data = torch.load(checkpoint)
+    start_epoch = data['epoch']  # next epoch
+    model.load_state_dict( data["state"] )
+
+  for epoch in range( start_epoch , para("num_epochs")) :
     start_time = time.time()
     l_sum = 0.0
     for x , y in data_iter:
@@ -118,38 +118,51 @@ def train(model, dataset, para, writer, device ,checkpoint=None):
       y_ ,_= model(x,None)
       l = loss(y.float() ,y_).sum()
 
-      # TODO 别人都是咋写的来着....
-      # TODO 网络部分的可视化 专门开个函数来写吧
-      if( False and epoch != 0):
-        for tag,value in model.named_parameters():
-            tag = tag.replace('.','/')
-            writer.add_histogram(tag ,value.data ,epoch+1 )
-            writer.add_histogram(tag+'/grad',value.grad.data,epoch+1 )
-
       nn.utils.clip_grad_norm_(model.parameters(), para("clip"))
       l.backward()
+      # TODO 别人都是咋写的来着....
+      # TODO 网络部分的可视化 专门开个函数来写吧
+      try:
+        if( True and epoch%20==1):
+          for tag,value in model.named_parameters():
+              tag = tag.replace('.','/')
+              writer.add_histogram(tag ,value.data ,epoch+1 )
+              writer.add_histogram(tag+'/grad',value.grad.data,epoch+1 )
+      except Exception as e:
+        logger.exception(f"in epoch{epoch},{tag}'s value is {value.data}")
+        exit(-1)
+
+      # TODO item()自动帮我们转到cpu上去了
       l_sum += l.item()
       optimizer.step()                    # apply gradients
-      # todo  attention here
+      # TODO  attention here
 
     avg_loss =  l_sum / len(data_iter)
-    logger.info("epoch %d, loss %.3f,elapsed time %.3f" \
-      % ( epoch + 1, avg_loss ,time.time() - start_time ) )
-    writer.add_scalar('loss',avg_loss ,epoch+1 )
-    
+
+    state={
+      'state':model.state_dict(),
+      'epoch':epoch+1
+    }   
+    torch.save(state, f"{para.GetSaveDir()}/latest_para.t7")
+    test_loss = test(model, dataset['test'] , para, device ,f"{para.GetSaveDir()}/latest_para.t7" ) 
+     
+    if  test_loss < min_loss:
+        min_loss = test_loss
+        torch.save(state, f"{para.GetSaveDir()}/min_loss_para.pt")
+
     with open(f"{para.GetSaveDir()}/loss", 'a') as loss_file:
-      loss_file.write(f"{epoch+1}\t{avg_loss}")
+      loss_file.write(f"{epoch+1}\t{avg_loss}\t{test_loss}")
 
-    torch.save(model.state_dict(), f"{para.GetSaveDir()}/latest_para.pt")
-    if  avg_loss < min_loss:
-        min_loss = avg_loss
-        torch.save(model.state_dict(), f"{para.GetSaveDir()}/min_loss_para.pt")
+    logger.info("epoch %d: train_loss %.3f,test_loss %.3f , elapsed time %.3f" \
+      % ( epoch + 1, avg_loss , test_loss , time.time() - start_time ) )
+    writer.add_scalar('train_loss',avg_loss ,epoch+1 )
+    writer.add_scalar('test_loss',test_loss ,epoch+1 )
 
-def test(model, dataset, para, device ):
+def test(model, dataset, para, device ,checkpoint=None ):
   # 放在外面去
   loss = nn.MSELoss()
   check_flag = True
-  model.eval() # TODO 实际上也没有正则化层啊...看看yuli代码...
+  # model.eval() # TODO 实际上也没有正则化层啊...看看yuli代码...
   test_dataset = TrafficData( 
             dataset ,
             time_stamp = para("time_stamp"),
@@ -166,14 +179,17 @@ def test(model, dataset, para, device ):
   logger.info(f"batch_size(144//time_stamp) is { batch_size }")
 
   data_iter = Data.DataLoader(test_dataset, batch_size, shuffle=False,num_workers= para("num_workers") )
-  model.load_state_dict(torch.load(f"{para.GetSaveDir()}/min_loss_para.pt"))
-  
-  data_iterator =iter(data_iter)
+  try:
+    model.load_state_dict(torch.load(checkpoint)["state"])
+  except Exception as e :
+    logger.exception(e,exc_info=True) # TODO record
+    logger.error(f"checkpoint path is {checkpoint}")
+    exit(-1)
+
   # TODO 先取其中一天的出来看看   后面不仅要改成for循环  batch_size也要加大
   # for iter in tqdm( data_iter ):
-  
   l_sum = 0.0
-  for index,(x,y) in enumerate(data_iterator) : 
+  for index,(x,y) in enumerate(data_iter) : 
     # ( time_stamp , batch_size = 1 , 3 )   ( time_stamp , batch_size= 1 ,1 )
     pre_day ,true_day = [] , []
     y = y.to(device); x = x.to(device)
@@ -182,32 +198,33 @@ def test(model, dataset, para, device ):
         # TODO ask老吴 是不是记录的时候也记录维度= =
     y_ , _ =  model( x ,None)
 
-    # batch_size * time_stamp 
+    # batch_size * time_stamp  --> [144] shape
     pre_day = y_.detach().reshape(1,-1).squeeze() # .cpu().numpy()  # 
     true_day = y.detach().reshape(1,-1).squeeze() # .cpu().numpy()  #
 
-    logger.info(f"true_day of {index//2} is {true_day.cpu().numpy()}")
+    # logger.info(f"true_day of {index//2} is {true_day.cpu().numpy()}")
 
     if check_flag:
       check_flag =False
-      logger.critical(f"pre_day, true_day shape is {pre_day.shape} / {true_day.shape}" )
+      # logger.critical(f"pre_day, true_day shape is {pre_day.shape} / {true_day.shape}" )
 
     l_sum += loss(pre_day,true_day)
 
     # save fig for comparation
-    plt.plot(range(len(y)),pre_day.cpu().numpy())
-    plt.plot(range(len(y_)),true_day.cpu().numpy())
-    plt.legend( ["predict","ground_truth"] )
-    plt.xlabel( "time step" )
-    plt.ylabel( "traffic flow" )
-    plt.title( f"predict {'weekend' if index%2==0 else 'weekday'} day of city {index//2}" )
-    plt.savefig(f"test_{index//2}_{index%2}.svg")  # 0 for weekend and 1 for weekday
+    if False: 
+      plt.plot(range(len(y)),pre_day.cpu().numpy())
+      plt.plot(range(len(y_)),true_day.cpu().numpy())
+      plt.legend( ["predict","ground_truth"] )
+      plt.xlabel( "time step" )
+      plt.ylabel( "traffic flow" )
+      plt.title( f"predict {'weekend' if index%2==0 else 'weekday'} day of city {index//2}" )
+      plt.savefig(f"{para.GetSaveDir()}/res_pic/test_{index//2}_{index%2}.svg")  # 0 for weekend and 1 for weekday
 
-  logger.info(f"loss on test_set is {l_sum}")
+  return l_sum/66/2
+  # logger.info(f"loss on test_set is {l_sum}")
 
 # TODO pipeline在这里做就行
 # test_dataset = TrafficData(test_data,time_stamp=time_stamp,device=device,test_index=(weekend,workday),train=False)
-
 
 if __name__ == '__main__':
   rnn_regression = RegressionRnn(
@@ -218,7 +235,5 @@ if __name__ == '__main__':
                     drop_rate = para("drop_rate") ).to(device)
   logger.debug(rnn_regression)
 
-  # train(rnn_regression , train_data, para , writer , device )
-
-  test( rnn_regression , test_data, para , device)
-
+  dataset={"train":train_data,"test":test_data}
+  train(rnn_regression , dataset, para , writer , device )
