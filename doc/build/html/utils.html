@@ -1,0 +1,272 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="zh-CN" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="zh-CN" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>utils module &mdash; analysis-hw2 1.0 文档</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script type="text/javascript" src="_static/translations.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="索引" href="genindex.html" />
+    <link rel="search" title="搜索" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> analysis-hw2
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">utils module</a></li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">analysis-hw2</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>utils module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/utils.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-utils">
+<span id="utils-module"></span><h1>utils module<a class="headerlink" href="#module-utils" title="永久链接至标题">¶</a></h1>
+<dl class="class">
+<dt id="utils.ParaList">
+<em class="property">class </em><code class="sig-prename descclassname">utils.</code><code class="sig-name descname">ParaList</code><span class="sig-paren">(</span><em class="sig-param">para</em><span class="sig-paren">)</span><a class="headerlink" href="#utils.ParaList" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>存储参数 和 数据存储文件 相关信息的类</p>
+<p>通过 模型参数 和 当前时间 对本次的运行 给出一个 unique id</p>
+<p>模型会有默认的参数列表 为了简化id 我们不使用全部的模型参数 只使用修改了的模型参数</p>
+<dl>
+<dt>unique id</dt><dd><p>e.g. time_stamp-12_num_epochs-200.11012103</p>
+</dd>
+<dt>__init__</dt><dd><dl class="simple">
+<dt>Args</dt><dd><dl class="simple">
+<dt>para ( dict )</dt><dd><p>从configs.config加载进来的默认参数列表
+e.g. { “time_stamp”:12 , “num_epochs”:200 }</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+<dt>__call__     </dt><dd><p>直接使用ParaList的实例并传入属性字符串 则会返回其相应的属性值</p>
+<dl>
+<dt>使用说明</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ParaList</span> <span class="n">para</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">para</span><span class="p">(</span><span class="s2">&quot;num_epochs&quot;</span><span class="p">)</span>
+<span class="go">200</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="method">
+<dt id="utils.ParaList.ChangePara">
+<code class="sig-name descname">ChangePara</code><span class="sig-paren">(</span><em class="sig-param">para_dict</em><span class="sig-paren">)</span><a class="headerlink" href="#utils.ParaList.ChangePara" title="永久链接至目标">¶</a></dt>
+<dd><p>修改数据
+Args</p>
+<blockquote>
+<div><dl>
+<dt>para_dict (dict)</dt><dd><p>通过命令行传入的 在默认参数列表上进行修改的参数列表</p>
+<p>e.g. { “time_stamp”:12 , “num_epochs”:200 }</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="utils.ParaList.GetSaveFile">
+<code class="sig-name descname">GetSaveFile</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#utils.ParaList.GetSaveFile" title="永久链接至目标">¶</a></dt>
+<dd><p>根据当前模型跑的参数</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="utils.RegressionRnn">
+<em class="property">class </em><code class="sig-prename descclassname">utils.</code><code class="sig-name descname">RegressionRnn</code><span class="sig-paren">(</span><em class="sig-param">input_dim</em>, <em class="sig-param">out_dim</em>, <em class="sig-param">num_hidden</em>, <em class="sig-param">num_layer</em>, <em class="sig-param">drop_rate=0</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#utils.RegressionRnn" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<dl class="method">
+<dt id="utils.RegressionRnn.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param">inputs</em>, <em class="sig-param">state</em><span class="sig-paren">)</span><a class="headerlink" href="#utils.RegressionRnn.forward" title="永久链接至目标">¶</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">注解</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="utils.TrafficData">
+<em class="property">class </em><code class="sig-prename descclassname">utils.</code><code class="sig-name descname">TrafficData</code><span class="sig-paren">(</span><em class="sig-param">input_data</em>, <em class="sig-param">time_stamp</em>, <em class="sig-param">device</em>, <em class="sig-param">test_index</em>, <em class="sig-param">train</em><span class="sig-paren">)</span><a class="headerlink" href="#utils.TrafficData" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<code class="xref py py-class docutils literal notranslate"><span class="pre">torch.utils.data.dataset.TensorDataset</span></code></p>
+<p>数据的装饰类</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, hesy
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
